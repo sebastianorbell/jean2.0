@@ -49,6 +49,10 @@ class Jean:
         self.database = database
 
     def __call__(self):
+        """
+        Run the optimisation.
+        @return:
+        """
         res = gp_minimize(
             self._objective_function,
             self.bounds,
@@ -59,6 +63,11 @@ class Jean:
         self.database.save_dataset(res, self)
         return res
     def _objective_function(self, values):
+        """
+        Objective function which is minimised by the optimiser.
+        @param values:
+        @return:
+        """
         assert values.__len__() == self.parameters.__len__(), \
             f'values {values.__len__()} must be the same length as parameters {self.parameters.__len__()}'
         self._timeit()
@@ -68,23 +77,35 @@ class Jean:
         score = self.score_function(measurement_result)
         return score
     def _measurement(self):
+        """
+        Perform a measurement.
+        @return:
+        """
         measurement_result = self.measurement()
         self.measurement_results.append(measurement_result.__dict__)
         return measurement_result
     def _timeit(self):
+        """
+        Save the current time.
+        @return:
+        """
         self.times.append(time())
 
 class Dummy_parameter:
-    def __init__(self, name):
+    def __init__(self, name, measurement=lambda x: x):
         self.name = name
         self.value = 0.0
+        self.measurement_fn = measurement
     def set(self, val):
         self.value = val
     def get(self):
         return self.value
+    def measurement(self):
+        return self.measurement_fn(self.value)
+
 
 if __name__=='__main__':
-    def measurement():
+    def measurement(value):
         class Measurement:
             def __init__(self):
                 self.x = np.linspace(0, np.pi*8)
@@ -100,15 +121,15 @@ if __name__=='__main__':
     sys.path.append(sub_dir)
     sub_database = Database(sub_dir)
 
-    dummy_measurement_parameter = Dummy_parameter('measurement')
+    dummy_measurement_parameter = Dummy_parameter('measurement', measurement=measurement)
 
     sub_jean = Jean(
-                     [dummy_measurement_parameter],
+                     parameters=[dummy_measurement_parameter],
                      bounds=[(0,1)],
                      n_calls=10,
                      n_initial_points=5,
                      score_function=quality_factor,
-                     measurement=measurement,
+                     measurement=dummy_measurement_parameter.measurement,
                      database=sub_database
     )
 
@@ -117,7 +138,7 @@ if __name__=='__main__':
     dummy1 = Dummy_parameter('dummy1')
 
     jean = Jean(
-                     [dummy1, dummy2],
+                     parameters=[dummy1, dummy2],
                      bounds=[(0,1), (0,1)],
                      n_calls=20,
                      n_initial_points=10,
