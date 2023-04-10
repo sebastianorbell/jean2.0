@@ -5,8 +5,10 @@ Created on 22/03/2023
 import os
 import sys
 
+import matplotlib.pyplot as plt
 import numpy as np
 from skopt import gp_minimize
+from skopt.plots import plot_evaluations, plot_objective, plot_convergence, plot_gaussian_process
 from time import time
 
 from jean2.inference.quality_factor import quality_factor
@@ -21,7 +23,8 @@ class Jean:
                  n_initial_points,
                  score_function,
                  measurement,
-                 database):
+                 database,
+                 plot=True):
         """
 
         Main class which performs optimisation and saves the results to a database.
@@ -47,6 +50,7 @@ class Jean:
         self.times = []
         self.measurement_results = []
         self.database = database
+        self.plot = plot
 
     def __call__(self):
         """
@@ -61,7 +65,26 @@ class Jean:
         )
 
         self.database.save_dataset(res, self)
+        if self.plot:
+            self._plot(res)
         return res
+    def _plot(self, res):
+        """
+        Plot the results.
+        @param res:
+        @return:
+        """
+        plot_evaluations(res)
+        plt.show()
+
+        plot_objective(res)
+        plt.show()
+
+        plot_convergence(res)
+        plt.show()
+
+        plot_gaussian_process(res)
+        plt.show()
     def _objective_function(self, values):
         """
         Objective function which is minimised by the optimiser.
@@ -107,10 +130,9 @@ class Dummy_parameter:
 if __name__=='__main__':
     def measurement(value):
         class Measurement:
-            def __init__(self):
-                self.x = np.linspace(0, np.pi*8)
-                self.y = np.sin(self.x)
-        m = Measurement()
+            def __init__(self, value):
+                self.x = np.square(value-0.2) #+ np.random.rand(1)
+        m = Measurement(value)
         return m
 
     experiment_directory = os.getcwd()+'/../data'
@@ -125,21 +147,23 @@ if __name__=='__main__':
 
     sub_jean = Jean(
                      parameters=[dummy_measurement_parameter],
-                     bounds=[(0,1)],
-                     n_calls=10,
-                     n_initial_points=5,
-                     score_function=quality_factor,
+                     bounds=[(0.,1.)],
+                     n_calls=40,
+                     n_initial_points=10,
+                     score_function=lambda x: x.x,
                      measurement=dummy_measurement_parameter.measurement,
-                     database=sub_database
+                     database=sub_database,
+                        plot=False
     )
 
+    sub_res = sub_jean()
 
     dummy2 = Dummy_parameter('dummy2')
     dummy1 = Dummy_parameter('dummy1')
 
     jean = Jean(
                      parameters=[dummy1, dummy2],
-                     bounds=[(0,1), (0,1)],
+                     bounds=[(0.,1.), (0.,1.)],
                      n_calls=20,
                      n_initial_points=10,
                      score_function=lambda x: x.fun,
