@@ -1,6 +1,6 @@
 import os
 import unittest
-from src import Database, Jean, Experiment_parameter, fit_decaying_cosine
+from src import Database, Jean, Experiment_parameter, fit_decaying_cosine, Results
 import numpy as np
 
 
@@ -40,7 +40,9 @@ class MyTestCase(unittest.TestCase):
 
     def test_create_jean_2d(self):
         self.test_create_database()
-        self.parameter = Experiment_parameter(bounds={'epsilon': (20., 30.), 'theta': (0, np.pi*2)})
+
+        bounds = {'epsilon': (20., 30.), 'theta': (0, np.pi*2)}
+        self.parameter = Experiment_parameter(bounds)
 
         def auto_characterization(epsilon=None, theta=None):
             return Results(t2=theta/epsilon, larmor=theta/epsilon)
@@ -67,10 +69,6 @@ class MyTestCase(unittest.TestCase):
         self.assertAlmostEqual(T2_pred, T2 * 1e6, delta=1e-1)
         self.assertAlmostEqual(noise_to_signal, noise, delta=1e-1)
 
-class Results:
-    def __init__(self, t2, larmor):
-        self.t2 = t2
-        self.larmor=larmor
 
 if __name__ == '__main__':
     unittest.main()
