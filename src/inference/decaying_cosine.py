@@ -129,15 +129,14 @@ def fit_decaying_cosine(t, y, plot=True):
 
     # a block to plot the fit and the fourier transform
     if plot:
-        t_plot = t * 1e9
         frequencies_plot = frequencies / 1e6
 
         fig, axs = plt.subplots(2)
         fig.suptitle('Fit of function')
-        axs[0].plot(t_plot, y, label='data', marker='o', color='b')
-        axs[0].plot(t_plot, y_pred, label='fit', color='r')
-        axs[0].plot(t_plot, decaying_envelope_upper(t, *popt), color='k', alpha=0.5, linestyle='--')
-        axs[0].plot(t_plot, decaying_envelope_lower(t, *popt), color='k', alpha=0.5, linestyle='--')
+        axs[0].plot(t, y, label='data', marker='o', color='b')
+        axs[0].plot(t, y_pred, label='fit', color='r')
+        axs[0].plot(t, decaying_envelope_upper(t, *popt), color='k', alpha=0.5, linestyle='--')
+        axs[0].plot(t, decaying_envelope_lower(t, *popt), color='k', alpha=0.5, linestyle='--')
         axs[0].axhline(offset_pred, color='k', alpha=0.5, linestyle='--')
 
         axs[0].legend()
