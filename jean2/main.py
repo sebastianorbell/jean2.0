@@ -109,7 +109,7 @@ class Jean:
         @return:
         """
         measurement_result = self.measurement()
-        self.measurement_results.append(measurement_result.__dict__)
+        self.measurement_results.append(measurement_result)
         return measurement_result
     def _timeit(self):
         """
