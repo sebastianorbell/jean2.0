@@ -36,8 +36,8 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(self.res)
 
     def test_fit_decaying_cosine(self):
-        t = np.linspace(0, 1, 100)
-        y = np.cos(2 * np.pi * 10 * t) * np.exp(-t/2) + np.random.normal(0, 0.1, 100)
+        t = np.linspace(0, 30, 100)
+        y = np.cos(2 * np.pi * 10 * t) * np.exp(-t*1e-1) + np.random.normal(0, 0.1, 100)
         f_pred, T2_pred, signal_to_noise = fit_decaying_cosine(t, y)
         self.assertTrue(f_pred)
 
