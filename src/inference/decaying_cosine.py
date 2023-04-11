@@ -69,7 +69,7 @@ def dtft(Z, time_span, frequencies, subtract_mean=True):
 def fit_decaying_cosine(t, y, plot=True):
     """
     Fit a decaying sine to the data
-    :param t: the time points in ns
+    :param t: the time points in s
     :param y: the measured demodulate signal
     :param plot: a bool whether to plot the fit
     :return: f_pred, T2_pred, signal_to_noise the predicted frequency and T2 in MHz and us respectively
@@ -124,19 +124,20 @@ def fit_decaying_cosine(t, y, plot=True):
 
     # computing the signal-to-noise ratio
     least_squares_noise = np.sqrt(np.mean((y - y_pred) ** 2))
-    signal_to_noise = least_squares_noise / amplitude_pred
-    print(f"signal to noise: {signal_to_noise}")
+    noise_to_signal = least_squares_noise / amplitude_pred
+    print(f"signal to noise: {noise_to_signal}")
 
     # a block to plot the fit and the fourier transform
     if plot:
+        t_plot = t * 1e9
         frequencies_plot = frequencies / 1e6
 
         fig, axs = plt.subplots(2)
         fig.suptitle('Fit of function')
-        axs[0].plot(t, y, label='data', marker='o', color='b')
-        axs[0].plot(t, y_pred, label='fit', color='r')
-        axs[0].plot(t, decaying_envelope_upper(t, *popt), color='k', alpha=0.5, linestyle='--')
-        axs[0].plot(t, decaying_envelope_lower(t, *popt), color='k', alpha=0.5, linestyle='--')
+        axs[0].plot(t_plot, y, label='data', marker='o', color='b')
+        axs[0].plot(t_plot, y_pred, label='fit', color='r')
+        axs[0].plot(t_plot, decaying_envelope_upper(t, *popt), color='k', alpha=0.5, linestyle='--')
+        axs[0].plot(t_plot, decaying_envelope_lower(t, *popt), color='k', alpha=0.5, linestyle='--')
         axs[0].axhline(offset_pred, color='k', alpha=0.5, linestyle='--')
 
         axs[0].legend()
@@ -156,4 +157,4 @@ def fit_decaying_cosine(t, y, plot=True):
         plt.tight_layout()
         plt.show()
 
-    return f_MHz, T2_us, signal_to_noise
+    return f_MHz, T2_us, noise_to_signal
