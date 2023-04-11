@@ -1,7 +1,9 @@
+import os
 import unittest
 from src import Database, Jean, Dummy_parameter
+import numpy as np
 class MyTestCase(unittest.TestCase):
-    def test_create_database(self, directory):
+    def test_create_database(self, directory=os.getcwd()+"/data"):
         self.database = Database(directory)
         self.assertTrue(self.database)
     def test_create_dummy_parameter(self):
@@ -13,6 +15,8 @@ class MyTestCase(unittest.TestCase):
                                          measurement=lambda x: auto_characterization(x))
         self.assertTrue(self.parameter)
     def test_create_jean(self):
+        self.test_create_database()
+        self.test_create_dummy_parameter()
         self.jean = Jean(parameters=[self.parameter],
                          bounds=[(15.,25.)],
                          n_calls=10,
@@ -22,29 +26,18 @@ class MyTestCase(unittest.TestCase):
                          database=self.database,
                          plot=True,
                          x0=[[23.295720250820295], [24.52004700612897], [19.018953133673882]],
-                         y0=[1.26356045, 0.94962607, 1.05807385]
+                         y0=1/np.array([0.04292634, 0.04078296, 0.05257913])
                          )
         self.assertTrue(self.jean)
+
+    def test_run_jean(self):
+        self.test_create_jean()
+        self.res = self.jean()
+        self.assertTrue(self.res)
 class Results:
     def __init__(self, t2, larmor):
         self.t2 = t2
         self.larmor=larmor
-
-
-jean = Jean(
-                 parameters=[epsilon],
-                 bounds=[(15.,25.)],
-                 n_calls=6,
-                 n_initial_points=1,
-                 score_function=lambda x: 1/x.t2,
-                 measurement=epsilon.measurement,
-                 database=database,
-                plot=True,
-                x0=[[23.295720250820295], [24.52004700612897], [19.018953133673882]],
-                y0=np.array([1.26356045, 0.94962607, 1.05807385])
-)
-res = jean()
-
 
 if __name__ == '__main__':
     unittest.main()
