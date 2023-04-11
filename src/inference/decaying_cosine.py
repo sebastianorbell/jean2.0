@@ -4,18 +4,56 @@ from scipy.optimize import curve_fit
 
 
 def decaying_cosine(t, frequency, amplitude, phase, offset, decay):
+    """
+    compute the decaying cosine
+    @param t:
+    @param frequency:
+    @param amplitude:
+    @param phase:
+    @param offset:
+    @param decay:
+    @return:
+    """
     return amplitude * np.exp(-decay * t) * np.cos(2 * np.pi * frequency * t + phase) + offset
 
 
 def decaying_envelope_upper(t, frequency, amplitude, phase, offset, decay):
+    """
+    compute the decaying envelope upper side
+    @param t:
+    @param frequency:
+    @param amplitude:
+    @param phase:
+    @param offset:
+    @param decay:
+    @return:
+    """
     return amplitude * np.exp(-decay * t) + offset
 
 
 def decaying_envelope_lower(t, frequency, amplitude, phase, offset, decay):
+    """
+    compute the decaying envelope lower side
+    @param t:
+    @param frequency:
+    @param amplitude:
+    @param phase:
+    @param offset:
+    @param decay:
+    @return:
+    """
     return -amplitude * np.exp(-decay * t) + offset
 
 
 def dtft(Z, time_span, frequencies, subtract_mean=True):
+    """
+    Compute the discrete time fourier transform
+    @param Z:
+    @param time_span:
+    @param frequencies:
+    @param subtract_mean:
+    @return:
+    """
     periods = time_span * frequencies
 
     if subtract_mean:
@@ -93,6 +131,7 @@ def fit_decaying_sine(t, y, plot=True):
     if plot:
         t_plot = t * 1e9
         frequencies_plot = frequencies / 1e6
+
 
         fig, axs = plt.subplots(2)
         fig.suptitle('Fit of function')

@@ -11,7 +11,7 @@ from skopt import gp_minimize
 from skopt.plots import plot_evaluations, plot_objective, plot_convergence, plot_gaussian_process
 from time import time
 from src.utils.database import Database
-from src.helper_functions.Dummy_parameter import Dummy_parameter
+from src.utils.Dummy_parameter import Dummy_parameter
 
 class Jean:
     def __init__(self,
