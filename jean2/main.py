@@ -44,7 +44,6 @@ class Jean:
         self.names = [parameter.name for parameter in parameters]
         self.score_function = score_function
         self.measurement = measurement
-        self.experiment_directory = experiment_directory
         self.times = []
         self.measurement_results = []
         self.database = database
@@ -114,9 +113,9 @@ class Jean:
         self.times.append(time())
 
 class Dummy_parameter:
-    def __init__(self, name, measurement=lambda x: x):
+    def __init__(self, name, init_value=None, measurement=lambda x: x):
         self.name = name
-        self.value = 0.0
+        self.value = init_value
         self.measurement_fn = measurement
     def set(self, val):
         self.value = val
@@ -142,7 +141,7 @@ if __name__=='__main__':
     sys.path.append(sub_dir)
     sub_database = Database(sub_dir)
 
-    dummy_measurement_parameter = Dummy_parameter('measurement', measurement=measurement)
+    dummy_measurement_parameter = Dummy_parameter('measurement', init_value=0, measurement=measurement)
 
     sub_jean = Jean(
                      parameters=[dummy_measurement_parameter],
