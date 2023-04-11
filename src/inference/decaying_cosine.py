@@ -66,7 +66,7 @@ def dtft(Z, time_span, frequencies, subtract_mean=True):
     return np.abs(data) / Z.size
 
 
-def fit_decaying_sine(t, y, plot=True):
+def fit_decaying_cosine(t, y, plot=True):
     """
     Fit a decaying sine to the data
     :param t: the time points in ns
@@ -131,7 +131,6 @@ def fit_decaying_sine(t, y, plot=True):
     if plot:
         t_plot = t * 1e9
         frequencies_plot = frequencies / 1e6
-
 
         fig, axs = plt.subplots(2)
         fig.suptitle('Fit of function')
