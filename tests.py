@@ -41,16 +41,19 @@ class MyTestCase(unittest.TestCase):
     def test_create_jean_2d(self):
         self.test_create_database()
 
-        bounds = {'epsilon': (20., 30.), 'theta': (0, np.pi*2)}
+        bounds = {'epsilon': (20., 30.), 'theta': (0, np.pi / 2)}
         self.parameter = Experiment_parameter(bounds)
 
-        def auto_characterization(epsilon=None, theta=None):
-            return Results(t2=theta/epsilon, larmor=theta/epsilon)
+        def auto_characterization(epsilon = None, theta = None):
+            return Results(t2=epsilon * np.sin(theta) + 0.1, larmor=theta/epsilon)
+
+        def score_function(results):
+            return results.larmor / results.t2
 
         self.jean = Jean(parameters=self.parameter,
                          n_calls=10,
                          n_initial_points=5,
-                         score_function=lambda x: 1/x.t2,
+                         score_function=score_function,
                          measurement=auto_characterization,
                          database=self.database,
                          plot=True)
