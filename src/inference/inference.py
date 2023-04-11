@@ -15,7 +15,7 @@ def decaying_envelope_lower(t, frequency, amplitude, phase, offset, decay):
     return -amplitude * np.exp(-decay * t) + offset
 
 
-def dtft(Z, time_span, frequencies, subtract_mean = True):
+def dtft(Z, time_span, frequencies, subtract_mean=True):
     periods = time_span * frequencies
 
     if subtract_mean:
@@ -44,7 +44,7 @@ def fit_decaying_sine(t, y, plot=True):
     delta_t = time_span / len(t)
     f_niquist = 1 / (2 * delta_t)
 
-    print(f"Nyquist frequency: {f_niquist /  1e6:.2f}MHz")
+    print(f"Nyquist frequency: {f_niquist / 1e6:.2f}MHz")
 
     # the frequencies to computer the fourier transform for
     frequencies = np.arange(0, f_niquist, 1e4)
@@ -120,13 +120,3 @@ def fit_decaying_sine(t, y, plot=True):
         plt.show()
 
     return f_MHz, T2_us, signal_to_noise
-
-# t = np.arange(0, 5000, 50) / 1e9
-# y = decaying_cosine(t, 1e6, 1, np.pi, 1, 0.2e6) + np.random.randn(t.size) * 0.3
-# f, T2, signal_to_noise = fit_decaying_sine(t, y, plot=True)
-
-data = np.loadtxt( './data/Time.dat' )
-t = data[:,0] / 1e9
-y = data[:,1] * 1e5
-
-f, T2, signal_to_noise = fit_decaying_sine(t, y, plot=True)

@@ -8,6 +8,7 @@ import numpy as np
 import argparse
 import pickle
 
+
 @dataclass
 class DataClass:
     """
@@ -26,6 +27,7 @@ class DataClass:
     times: list
     measurement_results: list
     id: str
+
     def save(self, filename):
         """
         Pickle the optimisation data and save it to filename

@@ -12,12 +12,14 @@ import numpy as np
 from .data_class import DataClass
 from .helpers import find_min_and_max_id
 
+
 def create_directory(folder_path):
     """
     a function to create a directory and folder path
     @param folder_path: where to create the directory
     """
     if not os.path.exists(folder_path): os.mkdir(folder_path)
+
 
 def create_directory_structure(path):
     """
@@ -75,7 +77,3 @@ class Database:
 
     def next_id(self):
         return self.last_id() + 1
-
-
-
-

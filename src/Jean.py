@@ -10,8 +10,8 @@ import numpy as np
 from skopt import gp_minimize
 from skopt.plots import plot_evaluations, plot_objective, plot_convergence, plot_gaussian_process
 from time import time
-from jean2.utils.database import Database
-
+from src.utils.database import Database
+from src.helper_functions.Dummy_parameter import Dummy_parameter
 
 class Jean:
     def __init__(self,
@@ -65,6 +65,7 @@ class Jean:
         if self.plot:
             self._plot(res)
         return res
+
     def _plot(self, res):
         """
         Plot the results.
@@ -83,6 +84,7 @@ class Jean:
         if res.space.n_dims == 1:
             plot_gaussian_process(res)
             plt.show()
+
     def _objective_function(self, values):
         """
         Objective function which is minimised by the optimiser.
@@ -97,6 +99,7 @@ class Jean:
         measurement_result = self._measurement()
         score = self.score_function(measurement_result)
         return score
+
     def _measurement(self):
         """
         Perform a measurement.
@@ -105,6 +108,7 @@ class Jean:
         measurement_result = self.measurement()
         self.measurement_results.append(measurement_result.__dict__)
         return measurement_result
+
     def _timeit(self):
         """
         Save the current time.
@@ -112,28 +116,18 @@ class Jean:
         """
         self.times.append(time())
 
-class Dummy_parameter:
-    def __init__(self, name, init_value=None, measurement=lambda x: x):
-        self.name = name
-        self.value = init_value
-        self.measurement_fn = measurement
-    def set(self, val):
-        self.value = val
-    def get(self):
-        return self.value
-    def measurement(self):
-        return self.measurement_fn(self.value)
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     def measurement(value):
         class Measurement:
             def __init__(self, value):
-                self.x = np.square(value-0.2) #+ np.random.rand(1)
+                self.x = np.square(value - 0.2)  # + np.random.rand(1)
+
         m = Measurement(value)
         return m
 
-    experiment_directory = os.getcwd()+'/../data'
+
+    experiment_directory = os.getcwd() + '/../data'
     sys.path.append(experiment_directory)
     database = Database(experiment_directory)
     database_id = database.next_id()
@@ -144,14 +138,14 @@ if __name__=='__main__':
     dummy_measurement_parameter = Dummy_parameter('measurement', init_value=0, measurement=measurement)
 
     sub_jean = Jean(
-                     parameters=[dummy_measurement_parameter],
-                     bounds=[(0.,1.)],
-                     n_calls=20,
-                     n_initial_points=10,
-                     score_function=lambda x: x.x,
-                     measurement=dummy_measurement_parameter.measurement,
-                     database=sub_database,
-                        plot=False
+        parameters=[dummy_measurement_parameter],
+        bounds=[(0., 1.)],
+        n_calls=20,
+        n_initial_points=10,
+        score_function=lambda x: x.x,
+        measurement=dummy_measurement_parameter.measurement,
+        database=sub_database,
+        plot=False
     )
 
     sub_res = sub_jean()
@@ -160,14 +154,14 @@ if __name__=='__main__':
     dummy1 = Dummy_parameter('dummy1')
 
     jean = Jean(
-                     parameters=[dummy1, dummy2],
-                     bounds=[(0.,1.), (0.,1.)],
-                     n_calls=20,
-                     n_initial_points=10,
-                     score_function=lambda x: x.fun,
-                     measurement=sub_jean,
-                     database=database,
-                    plot=True
+        parameters=[dummy1, dummy2],
+        bounds=[(0., 1.), (0., 1.)],
+        n_calls=20,
+        n_initial_points=10,
+        score_function=lambda x: x.fun,
+        measurement=sub_jean,
+        database=database,
+        plot=True
     )
 
     res = jean()
