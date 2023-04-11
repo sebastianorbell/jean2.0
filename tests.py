@@ -4,6 +4,7 @@ from src import Database, Jean, Dummy_parameter, fit_decaying_cosine
 import numpy as np
 class MyTestCase(unittest.TestCase):
     def test_create_database(self, directory=os.getcwd()+"/data"):
+
         self.database = Database(directory)
         self.assertTrue(self.database)
     def test_create_dummy_parameter(self):
@@ -36,9 +37,9 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(self.res)
 
     def test_fit_decaying_cosine(self):
-        t = np.linspace(0, 30, 100)
-        y = np.cos(2 * np.pi * 10 * t + np.pi) * np.exp(-t*1e-1) + np.random.normal(0, 0.1, 100)
-        f_pred, T2_pred, signal_to_noise = fit_decaying_cosine(t*1e-9, y)
+        t = np.arange(0, 3000, 50)*1e-9
+        y = np.cos(2 * np.pi * 1e6 * t + np.pi) * np.exp(-t*1e6) + np.random.normal(0, 0.1, t.__len__())
+        f_pred, T2_pred, signal_to_noise = fit_decaying_cosine(t, y)
         self.assertTrue(f_pred)
 
 class Results:
