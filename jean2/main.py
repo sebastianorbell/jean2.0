@@ -10,8 +10,6 @@ import numpy as np
 from skopt import gp_minimize
 from skopt.plots import plot_evaluations, plot_objective, plot_convergence, plot_gaussian_process
 from time import time
-
-from jean2.inference.quality_factor import quality_factor
 from jean2.utils.database import Database
 
 
@@ -83,8 +81,9 @@ class Jean:
         plot_convergence(res)
         plt.show()
 
-        plot_gaussian_process(res)
-        plt.show()
+        if res.space.n_dims == 1:
+            plot_gaussian_process(res)
+            plt.show()
     def _objective_function(self, values):
         """
         Objective function which is minimised by the optimiser.
@@ -148,7 +147,7 @@ if __name__=='__main__':
     sub_jean = Jean(
                      parameters=[dummy_measurement_parameter],
                      bounds=[(0.,1.)],
-                     n_calls=40,
+                     n_calls=20,
                      n_initial_points=10,
                      score_function=lambda x: x.x,
                      measurement=dummy_measurement_parameter.measurement,
@@ -168,7 +167,8 @@ if __name__=='__main__':
                      n_initial_points=10,
                      score_function=lambda x: x.fun,
                      measurement=sub_jean,
-                     database=database
+                     database=database,
+                    plot=True
     )
 
     res = jean()
