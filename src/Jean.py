@@ -10,13 +10,12 @@ import numpy as np
 from skopt import gp_minimize
 from skopt.plots import plot_evaluations, plot_objective, plot_convergence, plot_gaussian_process
 from time import time
-from src.utils.database import Database
-from src.utils.Dummy_parameter import Dummy_parameter
+from .utils.database import Database
+from .utils.Experiment_parameter import Experiment_parameter
 
 class Jean:
     def __init__(self,
                  parameters,
-                 bounds,
                  n_calls,
                  n_initial_points,
                  score_function,
@@ -30,7 +29,6 @@ class Jean:
         Main class which performs optimisation and saves the results to a database.
 
         :param parameters: List of qgor parameters.
-        :param bounds: List of tuples indicating the parameter bounds.
         :param n_calls: Number of calls of the objective function.
         :param n_initial_points: Number of initial points.
         :param score_function: Function which takes the measurement results as an argument and returns a float.
@@ -38,12 +36,8 @@ class Jean:
         :param database: Database for the optimisation.
         """
         self.parameters = parameters
-        self.bounds = bounds
-        assert self.parameters.__len__() == self.bounds.__len__(), \
-            f'bounds {self.bounds.__len__()} must be the same length as parameters {self.parameters.__len__()}'
         self.n_calls = n_calls
         self.n_initial_points = n_initial_points
-        self.names = [parameter.name for parameter in parameters]
         self.score_function = score_function
         self.measurement = measurement
         self.times = []
@@ -60,7 +54,7 @@ class Jean:
         """
         res = gp_minimize(
             self._objective_function,
-            self.bounds,
+            self.parameters.bounds,
             n_calls=self.n_calls,
             n_initial_points=self.n_initial_points,
             x0=self.x0,
@@ -97,11 +91,8 @@ class Jean:
         @param values:
         @return:
         """
-        assert values.__len__() == self.parameters.__len__(), \
-            f'values {values.__len__()} must be the same length as parameters {self.parameters.__len__()}'
         self._timeit()
-        for value, parameter in zip(values, self.parameters):
-            parameter.set(value)
+        self.parameters.set(values)
         measurement_result = self._measurement()
         score = self.score_function(measurement_result)
         return score
@@ -111,7 +102,7 @@ class Jean:
         Perform a measurement.
         @return:
         """
-        measurement_result = self.measurement()
+        measurement_result = self.measurement(**self.parameters.get())
         self.measurement_results.append(measurement_result)
         return measurement_result
 
@@ -141,11 +132,10 @@ if __name__ == '__main__':
     sys.path.append(sub_dir)
     sub_database = Database(sub_dir)
 
-    dummy_measurement_parameter = Dummy_parameter('measurement', init_value=0, measurement=measurement)
+    dummy_measurement_parameter = Experiment_parameter('measurement', init_value=0, measurement=measurement)
 
     sub_jean = Jean(
-        parameters=[dummy_measurement_parameter],
-        bounds=[(0., 1.)],
+        parameters=dummy_measurement_parameter,
         n_calls=20,
         n_initial_points=10,
         score_function=lambda x: x.x,
@@ -156,8 +146,8 @@ if __name__ == '__main__':
 
     sub_res = sub_jean()
 
-    dummy2 = Dummy_parameter('dummy2')
-    dummy1 = Dummy_parameter('dummy1')
+    dummy2 = Experiment_parameter('dummy2')
+    dummy1 = Experiment_parameter('dummy1')
 
     jean = Jean(
         parameters=[dummy1, dummy2],
