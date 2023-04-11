@@ -22,6 +22,8 @@ class Jean:
                  score_function,
                  measurement,
                  database,
+                 x0=None,
+                 y0=None,
                  plot=True):
         """
 
@@ -48,6 +50,8 @@ class Jean:
         self.measurement_results = []
         self.database = database
         self.plot = plot
+        self.x0 = x0
+        self.y0 = y0
 
     def __call__(self):
         """
@@ -58,7 +62,9 @@ class Jean:
             self._objective_function,
             self.bounds,
             n_calls=self.n_calls,
-            n_initial_points=self.n_initial_points
+            n_initial_points=self.n_initial_points,
+            x0=self.x0,
+            y0=self.y0
         )
 
         self.database.save_dataset(res, self)
