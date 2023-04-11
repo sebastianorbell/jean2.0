@@ -1,6 +1,6 @@
 import os
 import unittest
-from src import Database, Jean, Dummy_parameter
+from src import Database, Jean, Dummy_parameter, fit_decaying_cosine
 import numpy as np
 class MyTestCase(unittest.TestCase):
     def test_create_database(self, directory=os.getcwd()+"/data"):
@@ -34,6 +34,13 @@ class MyTestCase(unittest.TestCase):
         self.test_create_jean()
         self.res = self.jean()
         self.assertTrue(self.res)
+
+    def test_fit_decaying_cosine(self):
+        t = np.linspace(0, 1, 100)
+        y = np.cos(2 * np.pi * 10 * t) * np.exp(-t/2) + np.random.normal(0, 0.1, 100)
+        f_pred, T2_pred, signal_to_noise = fit_decaying_cosine(t, y)
+        self.assertTrue(f_pred)
+
 class Results:
     def __init__(self, t2, larmor):
         self.t2 = t2
