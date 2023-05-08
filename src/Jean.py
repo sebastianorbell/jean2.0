@@ -41,7 +41,7 @@ class Jean:
         self.score_function = score_function
         self.measurement = measurement
         self.times = []
-        self.measurement_results = []
+        self.measurement_results = {}
         self.database = database
         self.plot = plot
         self.x0 = x0
@@ -103,7 +103,7 @@ class Jean:
         @return:
         """
         measurement_result = self.measurement(**self.parameters.get())
-        self.measurement_results.append(measurement_result)
+        self.measurement_results[tuple(self.parameters.get().values())] = measurement_result
         return measurement_result
 
     def _timeit(self):

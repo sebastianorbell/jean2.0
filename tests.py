@@ -1,8 +1,8 @@
 import os
 import unittest
 from src import Database, Jean, Experiment_parameter, fit_decaying_cosine, Results
+from src.utils.database.database import create_directory_structure
 import numpy as np
-
 
 class MyTestCase(unittest.TestCase):
     def test_create_database(self, directory=os.getcwd()+"/data"):
@@ -72,6 +72,49 @@ class MyTestCase(unittest.TestCase):
         self.assertAlmostEqual(T2_pred, T2 * 1e6, delta=1e-1)
         self.assertAlmostEqual(noise_to_signal, noise, delta=1e-1)
 
+    def test_nested_jean(self):
+        self.test_create_database()
+        data_dir = os.getcwd() + "/data"
+        experiment_name = 'preliminary_rabi'
+        experiment_dir = create_directory_structure(f'{data_dir}/{experiment_name}/')
+        inner_loop_dir = create_directory_structure(f'{data_dir}/{experiment_name}/inner_loop')
+        meta_data_dir = create_directory_structure(f'{data_dir}/{experiment_name}/meta_data')
+
+        bounds = {'epsilon': (20., 30.), 'theta': (0, np.pi / 2)}
+        self.parameter = Experiment_parameter(bounds)
+
+        self.meta_parameter = Experiment_parameter(bounds={'beta': (15., 25.)})
+
+        def meta_score_function(beta):
+
+            def score_function(results):
+                return results.larmor / results.t2
+
+            def auto_characterization(epsilon=None, theta=None):
+                return Results(t2=epsilon * np.sin(theta) + 0.1, larmor=(10.+(beta-20.)**2) * theta / epsilon)
+
+            self.jean = Jean(parameters=self.parameter,
+                             n_calls=10,
+                             n_initial_points=5,
+                             score_function=score_function,
+                             measurement=auto_characterization,
+                             database=Database(inner_loop_dir),
+                             plot=False)
+            res = self.jean()
+            return Results(x=res.x, y=res.fun)
+
+        self.meta_jean = Jean(parameters=self.meta_parameter,
+                         n_calls=10,
+                         n_initial_points=5,
+                         score_function=lambda x: x.y,
+                         measurement=meta_score_function,
+                         database=Database(experiment_dir),
+                         plot=True)
+
+        self.res = self.meta_jean()
+        print(self.meta_jean.measurement_results)
+        print(self.meta_jean.measurement_results[tuple(self.res.x)])
+        self.assertTrue(self.res)
 
 if __name__ == '__main__':
     unittest.main()

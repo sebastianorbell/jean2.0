@@ -5,6 +5,7 @@ Created on 09/12/2021
 
 
 def find_min_and_max_id(folder):
+
     paths = filter(lambda path: path.is_file(), folder.iterdir())
 
     ids = [int(path.stem) for path in paths]
