@@ -1,4 +1,4 @@
-
+%matplotlib inline
 import os
 import sys
 import time
@@ -299,14 +299,6 @@ def initialise_experiment():
                           scaling = 1,
                           units = ['°'])
 
-    LIPCA = ZILockinParameter(mfli,
-                          ['PCA'],
-                          'PCA',
-                          names = ['LIPCA'],
-                          gain = 1,
-                          scaling = 1,
-                          units = ['a.u.'])
-
     LIPhaseAdjust = GateParameter(mfli.demods[0].phaseadjust,
                        name = "Phase_adjust",
                        unit = "s",
@@ -377,16 +369,7 @@ def initialise_experiment():
     #     DAQ.ai0.volt()
     # elapsed = time.time()-start
     # print(f"Time per reading: {elapsed/steps:.3f} s")
-    def gate_voltages():
-
-        print(f'VSD {VSD()}')
-        print(f'VL {VL()}')
-        print(f'VLP {VLP()}')
-        print(f'VM {VM()}')
-        print(f'VRP {VRP()}')
-        print(f'VR {VR()}')
-
-    return ips, pp, awg, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPCA, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VSD, VL, VR, VLP, VRP, VM, gate_voltages
+    return awg, pp, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VS, VM, VL, VLP, VR, VRP
 
 def detuning(x1,y1,x2,y2):
     slope = (y1-y2)/(x1-x2)
@@ -399,19 +382,15 @@ def detuning(x1,y1,x2,y2):
     # ISD = xr_dataset["I_SD"]#.to_numpy()
     # ISD.plot()
 
-def continuous_pulse(pp):
+def rabi_pulsing(pp):
     pp.C_ampl = -0.025
-    pp.t_RO = 20e-9
-    pp.t_CB = 20e-9
+    pp.t_RO = 31e-9
+    pp.t_CB = 31e-9
     pp.t_ramp = 4e-9
     pp.t_burst = 4e-9
-    pp.IQ_delay = 19e-9  # delay calibrated with scope
+    pp.IQ_delay = 19e-9
     pp.I_ampl = 0.3
     pp.Q_ampl = 0.3
-    init_Rabi(pp, awg, VRP)
     return pp
-
 if __name__=='__main__':
-    ips, pp, awg, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPCA, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VSD, VL, VR, VLP, VRP, VM, gate_voltages = initialise_experiment()
-    LITC(2)
-    do1d(ips.field_setpoint_wait, .200, .400, 100, 4, ISD, LIPCA, LIXY, show_progress=True)
+    awg, pp, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VS, VM, VL, VLP, VR, VRP = initialise_experiment()
