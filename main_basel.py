@@ -2,8 +2,9 @@ import os
 import unittest
 from src import Database, Jean, Experiment_parameter, fit_decaying_cosine, Results
 from src.utils.database.database import create_directory_structure
-from src import PCA
-from .init_basel import initialise_experiment, rabi_pulsing
+from src.inference import PCA
+from init_basel import initialise_experiment, rabi_pulsing
+from qcodes.utils.dataset.doNd import do1d, do2d, do0d
 
 from doNdAWG import (do1dAWG,
                      do2dAWG,
@@ -23,13 +24,13 @@ drive_frequency_parameter = Experiment_parameter(drive_frequency_bounds)
 def rabi_1d(freq, pp=None, awg=None, cpg=None):
     # ips.run_to_field_wait(b_field)
     VS_freq(freq)
-    res = do1dAWG("Rabi", "t_burst", 0., 300e-9, 30, 2.1, LIX, LIY, pp=pp, awg=awg, cgp=cpg, show_progress=True)
+    res = do1dAWG("Rabi", "t_burst", 0., 30e-9, 30, 2.1, LIX, LIY, pp=pp, awg=awg, cgp=cpg, show_progress=False, show_pulse=False)
     xr_data = res[0].to_xarray_dataset()
     x = xr_data['LIX'].to_numpy()
     y = xr_data['LIY'].to_numpy()
-    pca = PCA([x,y])
+    pca = PCA(x,y)
     t_burst = xr_data['t_burst'].to_numpy()
-    f_pred, T2_pred, noise_to_signal = fit_decaying_cosine(t_burst, pca, plot=False)
+    f_pred, T2_pred, noise_to_signal = fit_decaying_cosine(t_burst, pca, plot=True)
     return Results(t2=T2_pred, f=f_pred, snr=1./noise_to_signal, signal=pca, t_burst=t_burst, drive_freq=freq)
 
 def rabi_frequency(results):
@@ -48,13 +49,23 @@ def meta_score_function(vrp=None, vlp=None, parameter=None, measurement=None):
                      score_function=rabi_frequency,
                      measurement=measurement,
                      database=Database(inner_loop_dir),
-                     plot=False)
+                     plot=True)
 
     res = jean()
 
     optimal_measurement_results = jean.measurement_results[tuple(res.x)]
+    t2 = optimal_measurement_results.t2
+    snr = optimal_measurement_results.snr
+    signal = optimal_measurement_results.signal
+    t_burst = optimal_measurement_results.t_burst
 
-    return Results(drive_freq=res.x, frequency=-res.fun, t2=optimal_measurement_results.t2)
+    return Results(drive_freq=res.x,
+                   frequency=-res.fun,
+                   t2=t2,
+                   snr=snr,
+                   signal=signal,
+                   t_burst=t_burst,
+                   measurements=jean.measurement_results)
 
 def quality_factor(results):
     return -results.frequency * results.t2
@@ -78,7 +89,7 @@ pp = rabi_pulsing(pp)
 VLP(known_rabi_spot['VLP'])
 VRP(known_rabi_spot['VRP'])
 
-rabi_1d_measurement = lambda freq: rabi_1d(freq, pp=pp, awg=awg, cpg=VRP)
+rabi_1d_measurement = lambda drive_freq=None: rabi_1d(drive_freq, pp=pp, awg=awg, cpg=VRP)
 
 meta_jean = Jean(parameters=meta_parameter,
                  n_calls=10,
@@ -90,9 +101,9 @@ meta_jean = Jean(parameters=meta_parameter,
                  database=Database(experiment_dir),
                  plot=True)
 
-# res = meta_jean()
-res = meta_score_function(VRP(known_rabi_spot['VRP']), VLP(known_rabi_spot['VLP']),
+res = meta_score_function(known_rabi_spot['VRP'], known_rabi_spot['VLP'],
                             parameter=drive_frequency_parameter,
                           measurement=rabi_1d_measurement)
 
-scan = do2d(VLP, 0.103, 0.128, 25, 0.5)
+# scan = do2d(VLP, 0.103, 0.128, 25, 0.5)
+# res = meta_jean()
