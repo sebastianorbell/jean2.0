@@ -66,7 +66,7 @@ def dtft(Z, time_span, frequencies, subtract_mean=True):
     return np.abs(data) / Z.size
 
 
-def fit_decaying_cosine(t, y, plot=True):
+def fit_decaying_cosine(t, y, f_min=None, f_max=None, plot=True):
     """
     Fit a decaying sine to the data
     :param t: the time points in s
@@ -82,10 +82,13 @@ def fit_decaying_cosine(t, y, plot=True):
     delta_t = time_span / len(t)
     f_niquist = 1 / (2 * delta_t)
 
-    print(f"Nyquist frequency: {f_niquist / 1e6:.2f}MHz")
-
     # the frequencies to computer the fourier transform for
-    frequencies = np.arange(0, f_niquist, 1e4)
+    if not f_min:
+        f_min = 0.
+    if not f_max:
+        f_max = f_niquist
+
+    frequencies = np.arange(f_min, f_max, 1e4)
 
     # computing the fourier transform
     ft = dtft(y, time_span, frequencies)
@@ -99,7 +102,7 @@ def fit_decaying_cosine(t, y, plot=True):
     T2_est = 1e6
 
     # the bounds for the fit
-    f_bounds = (0, f_niquist)
+    f_bounds = (f_min, f_max)
     amplitude_bounds = (0, 2 * amplitude_est)
     phase_bounds = (0, 2 * np.pi)
     offset_bounds = (y.min(), y.max())
@@ -125,10 +128,12 @@ def fit_decaying_cosine(t, y, plot=True):
     # computing the signal-to-noise ratio
     least_squares_noise = np.sqrt(np.mean((y - y_pred) ** 2))
     noise_to_signal = least_squares_noise / amplitude_pred
-    print(f"signal to noise: {noise_to_signal}")
 
     # a block to plot the fit and the fourier transform
     if plot:
+        print(f"signal to noise: {noise_to_signal}")
+        print(f"Nyquist frequency: {f_niquist / 1e6:.2f}MHz")
+
         t_plot = t * 1e9
         frequencies_plot = frequencies / 1e6
 

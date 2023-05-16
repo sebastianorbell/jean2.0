@@ -91,8 +91,8 @@ def initialise_experiment():
     station = qc.Station()
 
     #Defining Pulse Parameters
-    pp = PulseParameter(t_RO=50e-9, # readout part
-                        t_CB=50e-9, # coulomb blockade part
+    pp = PulseParameter(t_RO=41e-9, # readout part
+                        t_CB=41e-9, # coulomb blockade part
                         t_ramp = 4e-9,
                         t_burst = 4e-9,
                         C_ampl = 0,
@@ -383,8 +383,8 @@ def detuning(x1,y1,x2,y2):
 
 def rabi_pulsing(pp):
     pp.C_ampl = -0.025
-    pp.t_RO = 31e-9
-    pp.t_CB = 31e-9
+    pp.t_RO = 61e-9
+    pp.t_CB = 61e-9
     pp.t_ramp = 4e-9
     pp.t_burst = 4e-9
     pp.IQ_delay = 19e-9
