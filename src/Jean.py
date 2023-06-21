@@ -4,7 +4,7 @@ Created on 22/03/2023
 """
 import os
 import sys
-
+from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from skopt import gp_minimize
@@ -12,6 +12,8 @@ from skopt.plots import plot_evaluations, plot_objective, plot_convergence, plot
 from time import time
 from .utils.database import Database
 from .utils.Experiment_parameter import Experiment_parameter
+from .utils.database.database import create_directory_structure
+from .utils.utils import call_counter
 
 class Jean:
     def __init__(self,
@@ -52,7 +54,7 @@ class Jean:
         Run the optimisation.
         @return:
         """
-        res = gp_minimize(
+        self.res = gp_minimize(
             self._objective_function,
             self.parameters.bounds,
             n_calls=self.n_calls,
@@ -61,28 +63,33 @@ class Jean:
             y0=self.y0
         )
 
-        self.database.save_dataset(res, self)
+        id = self.database.save_dataset(self.res, self)
         if self.plot:
-            self._plot(res)
-        return res
+            self._plot(self.res, id)
+        return self.res
 
-    def _plot(self, res):
+    def _plot(self, res, id):
         """
         Plot the results.
         @param res:
         @return:
         """
+        plot_dir = create_directory_structure(Path(self.database.experiment_directory,'plots'))
         plot_evaluations(res)
+        plt.savefig(Path(plot_dir, f'evaluations_{str(id)}.png'))
         plt.show()
 
         plot_objective(res)
+        plt.savefig(Path(plot_dir, f'objective_{str(id)}.png'))
         plt.show()
 
         plot_convergence(res)
+        plt.savefig(Path(plot_dir, f'convergence_{str(id)}.png'))
         plt.show()
 
         if res.space.n_dims == 1:
             plot_gaussian_process(res)
+            plt.savefig(Path(plot_dir, f'gpr_{str(id)}.png'))
             plt.show()
 
     def _objective_function(self, values):
@@ -95,8 +102,10 @@ class Jean:
         self.parameters.set(values)
         measurement_result = self._measurement()
         score = self.score_function(measurement_result)
+        print(f'{self._measurement.calls} function calls')
         return score
 
+    @call_counter
     def _measurement(self):
         """
         Perform a measurement.

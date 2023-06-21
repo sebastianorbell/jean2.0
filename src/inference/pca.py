@@ -1,15 +1,18 @@
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
-def high_pass_and_normalise(array, f_min=None):
-    array = array - gaussian_filter1d(array, sigma=3)
-    array = (array - np.mean(array)) / np.std(array)
-    return array
+def high_pass(array, times=None, f_min=None):
+    return array - low_pass(array, times=times, f_max=f_min)
+def low_pass(array, times=None, f_max=None):
+    pixels_per_time = times.__len__() / (times.max() - times.min())
+    sigma = pixels_per_time/(np.pi*2*f_max)
+    return gaussian_filter1d(array, sigma=sigma)
+def normalise(array):
+    return (array - np.mean(array)) / np.std(array)
 
 def PCA(*arrays):
     arrays_copy = [np.copy(array) for array in arrays]
     for array in arrays_copy:
         array[np.isnan(array)] = np.mean(np.ma.masked_invalid(array))
-        array = high_pass_and_normalise(array)
 
     Z = np.stack(arrays_copy, axis=-1)
     shape = Z.shape
@@ -22,4 +25,5 @@ def PCA(*arrays):
     eigen_values, eigen_vectors = np.linalg.eig(C)
     arg_sorted = np.flip(eigen_values.argsort())
     eigen_vectors = eigen_vectors[:, arg_sorted]
-    return np.einsum("ik, kj -> ij", B, eigen_vectors).reshape(shape)[..., 0]
+    pca = np.einsum("ik, kj -> ij", B, eigen_vectors).reshape(shape)[..., 0]
+    return pca

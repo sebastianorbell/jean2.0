@@ -19,7 +19,6 @@ class DataClass:
     optimal_point: np.ndarray
     query_values: list
     query_points: list
-    models: classmethod
     parameter_names: list
     bounds: list
     n_calls: int

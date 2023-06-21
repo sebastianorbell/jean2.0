@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-
+from scipy.signal import find_peaks
 
 def decaying_cosine(t, frequency, amplitude, phase, offset, decay):
     """
@@ -65,6 +65,15 @@ def dtft(Z, time_span, frequencies, subtract_mean=True):
     data = np.einsum('a, ba -> b', Z, z_0, optimize='greedy')
     return np.abs(data) / Z.size
 
+def check_frequency_components(f_spectrum):
+    peaks, peak_properties = find_peaks(f_spectrum, prominence=[None, None])
+    prominences = peak_properties['prominences']
+    if prominences.__len__() == 1:
+        sorted_indexes=[0]
+        return peaks, prominences, sorted_indexes
+    else:
+        sorted_indexes = np.argsort(prominences)
+        return peaks, prominences, sorted_indexes
 
 def fit_decaying_cosine(t, y, f_min=None, f_max=None, plot=True):
     """
@@ -127,18 +136,18 @@ def fit_decaying_cosine(t, y, f_min=None, f_max=None, plot=True):
 
     # computing the signal-to-noise ratio
     least_squares_noise = np.sqrt(np.mean((y - y_pred) ** 2))
-    noise_to_signal = least_squares_noise / amplitude_pred
+    signal_to_noise = amplitude_pred / least_squares_noise
 
     # a block to plot the fit and the fourier transform
     if plot:
-        print(f"signal to noise: {noise_to_signal}")
+        print(f"signal to noise: {signal_to_noise}")
         print(f"Nyquist frequency: {f_niquist / 1e6:.2f}MHz")
 
         t_plot = t * 1e9
         frequencies_plot = frequencies / 1e6
 
         fig, axs = plt.subplots(2)
-        fig.suptitle('Fit of function')
+        fig.suptitle(f'SNR={signal_to_noise}')
         axs[0].plot(t_plot, y, label='data', marker='o', color='b')
         axs[0].plot(t_plot, y_pred, label='fit', color='r')
         axs[0].plot(t_plot, decaying_envelope_upper(t, *popt), color='k', alpha=0.5, linestyle='--')
@@ -162,4 +171,4 @@ def fit_decaying_cosine(t, y, f_min=None, f_max=None, plot=True):
         plt.tight_layout()
         plt.show()
 
-    return f_MHz, T2_us, noise_to_signal
+    return f_MHz, T2_us, signal_to_noise, ft

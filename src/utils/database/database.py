@@ -54,7 +54,6 @@ class Database:
             optimal_point=res.x,
             query_values=res.func_vals,
             query_points=res.x_iters,
-            models=res.models,
             parameter_names=jean.parameters.names,
             bounds=jean.parameters.bounds,
             n_calls=jean.n_calls,
@@ -68,6 +67,8 @@ class Database:
 
         # this just saves the directory - need the filename now
         dataclass.save(self.experiment_directory / Path(filename))
+
+        return id
 
     def last_id(self):
         _, last_id = find_min_and_max_id(self.experiment_directory)

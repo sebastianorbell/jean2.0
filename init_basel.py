@@ -39,6 +39,9 @@ sys.path.append(mydir)
 #from qcodes.instrument_drivers.Keysight.Keysight_34465A_submodules import Keysight_34465A # Keysight DMM 34465A
 import zhinst.qcodes as ziqc # ZI MFLI lock-in amplifier
 import nidaqmx
+from src.inference import PCA
+from src.utils.plots import plot_2d_rabi
+
 from NIDAQ import DAQAnalogInputs # NI DAQ
 from SP927v1 import SP927 # Basel DAC
 from Oxford_Instruments_IPS120 import OxfordInstruments_IPS120
@@ -50,6 +53,7 @@ from qcodes.instrument_drivers.tektronix.Keithley_2400 import Keithley_2400
 #from ANC350Lib.v4 import ANC350v4Lib
 #libfile = ANC350v4Lib(mydir+r"\anc350v4.dll")
 from BaselAWG5204 import BaselAWG5204 #Modified AWG
+from scipy.signal import find_peaks
 
 # Import helper functions
 from Datahelp import (dataset_to_numpy,
@@ -110,7 +114,7 @@ def initialise_experiment():
     station.add_component(dac)
 
     #MFLI Zurich Instruments
-    mfli = ziqc.MFLI("dev5240",host="127.0.0.1",name = "mf1i",  interface="USB",)
+    mfli = ziqc.MFLI("dev5626",host="127.0.0.1",name = "mf1i",  interface="USB",)
     station.add_component(mfli)
 
     daq_chs = [0,1,2,3,4]
@@ -130,7 +134,7 @@ def initialise_experiment():
 
     # 4-channel Tektronics AWG5204
     awg = BaselAWG5204('awg', 'TCPIP0::192.168.10.2::INSTR') #driver adapted from 5208 version, setting configs in AWG70000A the same as for 5204 as for 5208
-    #awg = BaselAWG5204('awg', 'USB0::0x0699::0x0503::B030570::INSTR') #driver adapted from 5208 version, setting configs in AWG70000A the same as for 5204 as for 5208
+    # awg = BaselAWG5204('awg', 'USB0::0x0699::0x0503::B030570::INSTR') #driver adapted from 5208 version, setting configs in AWG70000A the same as for 5204 as for 5208
     station.add_component(awg)
 
     #RS SGS100A Vector Source
@@ -368,28 +372,14 @@ def initialise_experiment():
     #     DAQ.ai0.volt()
     # elapsed = time.time()-start
     # print(f"Time per reading: {elapsed/steps:.3f} s")
-    return awg, pp, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VS, VM, VL, VLP, VR, VRP
+    return ips,awg, pp, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VS, VM, VL, VLP, VR, VRP, VSD
 
 def detuning(x1,y1,x2,y2):
     slope = (y1-y2)/(x1-x2)
     intercept = (y1+y2-slope*(x1+x2))/2
     return [slope, intercept]
 
-    # dataset = load_by_run_spec(captured_run_id=28)
-    # xr_dataset = dataset.to_xarray_dataset()
-    #
-    # ISD = xr_dataset["I_SD"]#.to_numpy()
-    # ISD.plot()
 
-def rabi_pulsing(pp):
-    pp.C_ampl = -0.025
-    pp.t_RO = 61e-9
-    pp.t_CB = 61e-9
-    pp.t_ramp = 4e-9
-    pp.t_burst = 4e-9
-    pp.IQ_delay = 19e-9
-    pp.I_ampl = 0.3
-    pp.Q_ampl = 0.3
-    return pp
+
 if __name__=='__main__':
-    awg, pp, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VS, VM, VL, VLP, VR, VRP = initialise_experiment()
+    ips, awg, pp, DAQ, mfli, VS, VS_freq, VS_phase, VS_pwr, VS_pulse_on, VS_pulse_off, VS_IQ_on, VS_IQ_off, VS_status, LIXY, LIXYRPhi, LIX, LIY, LIR, LIPhi, LIPhaseAdjust, LIfreq, LITC, ISD, DAQ, VS, VM, VL, VLP, VR, VRP, VSD = initialise_experiment()
